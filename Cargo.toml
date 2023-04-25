@@ -1,0 +1,27 @@
+[package]
+name = "ants"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winit = "0.28"
+env_logger = "0.10"
+log = "0.4"
+wgpu = "0.15"
+futures = "0.3"
+image = "0.24"
+cgmath = "0.18"
+fnv = "1.0"
+strum = "0.24"
+strum_macros = "0.24"
+wgpu_glyph = "0.18.0"
+noise = "0.8"
+rand = "0.8"
+
+[features]
+compile-shaders = ["shaderc"]
+
+[build-dependencies]
+shaderc = { version="0.8", optional=true } #requires git, python, ninja (on windows), & a c++11 compiler to be in path variable
