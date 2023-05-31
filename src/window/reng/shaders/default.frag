@@ -13,7 +13,7 @@ layout(set = 2, binding = 0) uniform texture2D text;
 layout(set = 2, binding = 1) uniform sampler samp;
 
 void main() {
-	out_color = texture(sampler2D(text, samp), text_coords) * pow(color_tint, vec4(2.2));
+	out_color = texture(sampler2D(text, samp), text_coords) * vec4(pow(color_tint.rgb, vec3(2.2)), color_tint.a);
 	if (out_color.a == 0.0) {
 		discard;
 	}

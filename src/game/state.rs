@@ -12,7 +12,7 @@ pub struct GameState {
 }
 
 impl GameState {
-	pub(super) fn new(event_loop: &EventLoop<()>) -> Self {
+	pub fn new(event_loop: &EventLoop<()>) -> Self {
 		let api = WinApi::new(event_loop);
 		Self {
 			world: World::new(),
@@ -21,33 +21,44 @@ impl GameState {
 		}
 	}
 
-	pub(super) fn step(&mut self) {
-		self.messenger.cleanup();
-		self.world.plan(
-			&self.world,
-			&self.api.external,
-			&self.api.input,
-			&mut self.messenger,
-		);
-
+	pub fn step(&mut self) {
+		self.world
+			.plan(&(), &self.api.external, &self.messenger.sender());
 		self.world.update(&self.api.external, &self.messenger);
-		self.api.external.refresh();
 
-		self.api.input.update_mouse();
+		let now = std::time::Instant::now();
+		self.api.external.update(now);
+		self.messenger.update(now);
 
-		const SCALE_SPEED: f32 = 20.;
+		const CAM_MOVE_SPEED: f32 = 50.;
 
-		self.api.external.camera.scale += SCALE_SPEED
+		self.api.external.camera.pos.x += CAM_MOVE_SPEED
 			* self.api.external.delta
-			* (self.api.input.key(VirtualKeyCode::Q) as i32
-				- self.api.input.key(VirtualKeyCode::Z) as i32) as f32;
+			* (self.api.external.key(VirtualKeyCode::D) as i32
+				- self.api.external.key(VirtualKeyCode::A) as i32) as f32;
+
+		self.api.external.camera.pos.y += CAM_MOVE_SPEED
+			* self.api.external.delta
+			* (self.api.external.key(VirtualKeyCode::W) as i32
+				- self.api.external.key(VirtualKeyCode::S) as i32) as f32;
+
+		const CAM_SCALE_SPEED: f32 = 50.;
+
+		self.api.external.camera.scale += CAM_SCALE_SPEED
+			* self.api.external.delta
+			* (self.api.external.key(VirtualKeyCode::Q) as i32
+				- self.api.external.key(VirtualKeyCode::Z) as i32) as f32;
 	}
 
-	pub(super) fn draw(&mut self) {
+	pub fn draw(&mut self) {
 		self.api.clear();
 
 		self.world.render(&self.api.external, &mut self.api.output);
 
 		self.api.draw();
+	}
+
+	pub fn cleanup(&mut self) {
+		self.world.cleanup()
 	}
 }

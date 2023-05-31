@@ -98,6 +98,7 @@ dependencies = [
  "log",
  "noise",
  "rand 0.8.5",
+ "rayon",
  "shaderc",
  "strum",
  "strum_macros",

@@ -11,9 +11,10 @@ pub struct Renderer<UniformType: Copy + PartialEq, InstanceType> {
 }
 
 impl<UniformType: Copy + PartialEq, InstanceType> Renderer<UniformType, InstanceType> {
-	const PREALLOCATED_INSTANCES: usize = 0x10;
+	const CHUNK_SIZE: usize = 50_000;
+
 	const DEFAULT_CHUNK_SIZE: wgpu::BufferAddress =
-		(Self::PREALLOCATED_INSTANCES * std::mem::size_of::<InstanceType>()) as wgpu::BufferAddress;
+		(Self::CHUNK_SIZE * std::mem::size_of::<InstanceType>()) as wgpu::BufferAddress;
 
 	pub fn new(win: &winit::window::Window, sample_count: u32) -> Self {
 		let resources =
@@ -43,7 +44,7 @@ impl<UniformType: Copy + PartialEq, InstanceType> Renderer<UniformType, Instance
 
 		let instance_buffer = resources.device.create_buffer(&wgpu::BufferDescriptor {
 			label: Some("Instance"),
-			size: (Self::PREALLOCATED_INSTANCES * std::mem::size_of::<InstanceType>())
+			size: (Self::CHUNK_SIZE * std::mem::size_of::<InstanceType>())
 				as wgpu::BufferAddress,
 			usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
 			mapped_at_creation: false,
@@ -104,7 +105,7 @@ impl<UniformType: Copy + PartialEq, InstanceType> Renderer<UniformType, Instance
 			instance_buffer,
 			instance_bg,
 			instance_len: 0,
-			instance_cap: Self::PREALLOCATED_INSTANCES,
+			instance_cap: Self::CHUNK_SIZE,
 			encoder: resources.device.create_command_encoder(&Default::default()),
 			staging_belt: wgpu::util::StagingBelt::new(Self::DEFAULT_CHUNK_SIZE),
 			texture_bg,
@@ -315,9 +316,10 @@ impl<UniformType: Copy + PartialEq, InstanceType> Renderer<UniformType, Instance
 	}
 
 	pub fn draw(&mut self, instances: &[InstanceType]) {
-		if !instances.is_empty() {
-			self.set_instances(instances);
-			self.set_uniform(self.uniform.expect("Uniform not given!"));
+		self.set_uniform(self.uniform.expect("Uniform not given!"));
+
+		for chunk in instances.chunks(Self::CHUNK_SIZE) {
+			self.set_instances(chunk);
 
 			let view = &self.get_frame().texture.create_view(&Default::default());
 
@@ -341,9 +343,7 @@ impl<UniformType: Copy + PartialEq, InstanceType> Renderer<UniformType, Instance
 			render_pass.set_bind_group(0, &self.render_data.uniform_bg, &[]);
 			render_pass.set_bind_group(1, &self.render_data.instance_bg, &[]);
 			render_pass.set_bind_group(2, &self.render_data.texture_bg, &[]);
-			render_pass.draw(0..5, 0..self.render_data.instance_len as u32);
-
-			drop(render_pass);
+			render_pass.draw(0..4, 0..self.render_data.instance_len as u32);
 		}
 	}
 

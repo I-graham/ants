@@ -11,7 +11,7 @@ struct Instance {
 	vec2  scale;
 	vec2  translate;
 	float rotation;
-	int   screen_relative;
+	bool  screen_relative;
 };
 
 layout(set=1, binding=0, std140)
@@ -22,19 +22,19 @@ buffer InstanceData {
 layout(location=0) out vec2 text_coords;
 layout(location=1) out vec4 color_tint;
 
+Instance inst = instances[gl_InstanceIndex];
+
 vec2 positions[4] = vec2[](
+    vec2(1.0, 1.0),
     vec2(1.0, -1.0),
     vec2(-1.0, 1.0),
-    vec2(1.0, 1.0),
     vec2(-1.0, -1.0)
 );
 
-Instance inst = instances[gl_InstanceIndex];
-
 vec2 inst_coords[4] = vec2[](
+	inst.text_coords.zy,
 	inst.text_coords.zw,
 	inst.text_coords.xy,
-	inst.text_coords.zy,
 	inst.text_coords.xw
 );
 
@@ -42,8 +42,8 @@ vec2 rotv2(vec2 vec, float theta) {
 	float a = degrees(atan(vec.y, vec.x));
 
 	return length(vec) * vec2(
-		cos(radians(a + theta)),
-		sin(radians(a + theta))
+		cos(radians(a - theta)),
+		sin(radians(a - theta))
 	);
 }
 
@@ -53,13 +53,13 @@ void main() {
 
 	vec2 coord = positions[index] / 2.;
 
-    vec2 pos = rotv2(coord, inst.rotation) * inst.scale + inst.translate;
+    vec2 pos = rotv2(coord * inst.scale, inst.rotation) + inst.translate;
 		
 	text_coords = inst_coords[index];
 	color_tint  = inst.tint;
 
 	gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
-	if (inst.screen_relative == 0) {
+	if (!inst.screen_relative) {
 		gl_Position = ortho * gl_Position;
 	}
 }

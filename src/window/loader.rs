@@ -52,7 +52,7 @@ pub fn load_textures() -> (image::RgbaImage, TextureMap) {
             Instance {
                 texture,
                 scale: (width, height / text.frame_count() as f32).into(),
-                rotation: if rotated { -90. } else { 0. }.into(),
+                rotation: if rotated { 90. } else { 0. }.into(),
                 ..Default::default()
             },
         );

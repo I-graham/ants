@@ -19,6 +19,7 @@ strum_macros = "0.24"
 wgpu_glyph = "0.18.0"
 noise = "0.8"
 rand = "0.8"
+rayon = "1.7"
 
 [features]
 compile-shaders = ["shaderc"]
