@@ -30,8 +30,8 @@ impl Ant {
 	pub const SPEED: f32 = 15.0;
 	pub const TURN_SPEED: f32 = 180. * TAU / 360.;
 	pub const EXPLORATION: f32 = Self::TURN_SPEED;
-	pub const TRAIL_SEP: f32 = 10.0;
-	pub const PREFER_STRAIGHT: f32 = 0.5;
+	pub const TRAIL_SEP: f32 = 15.0;
+	pub const PREFER_STRAIGHT: f32 = 0.6;
 
 	pub fn new(pos: Vector2<f32>, dir: f32) -> Self {
 		Self {
@@ -69,7 +69,7 @@ impl GameObject<World> for Ant {
 
 				for (d, trail) in world
 					.trails
-					.query_dist(self.pos.into(), Self::TRAIL_SMELL_RAD)
+					.query_with_dist(self.pos.into(), Self::TRAIL_SMELL_RAD)
 					.filter(|(_, t)| t.ty == Pheromone::ToHome)
 				{
 					sum_dir -= trail.dir.normalize_to(trail.strength / (0.5 + d));
@@ -120,7 +120,7 @@ impl GameObject<World> for Ant {
 
 		if self.pos.distance2(self.last_trail) > Self::TRAIL_SEP.powf(2.) {
 			self.last_trail = self.pos;
-			Some(Trail::new(external.now, self.pos, self.dir, ty))
+			Some(Trail::new(self.pos, self.dir, ty))
 		} else {
 			None
 		}

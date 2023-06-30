@@ -1,14 +1,12 @@
 use crate::game::*;
 use crate::window::*;
 use cgmath::*;
-use std::time::Instant;
 
 pub struct Trail {
 	pub pos: Vector2<f32>,
 	pub dir: Vector2<f32>,
 	pub ty: Pheromone,
 	pub strength: f32,
-	birth: Instant,
 }
 
 #[repr(u32)]
@@ -19,17 +17,34 @@ pub enum Pheromone {
 }
 
 impl Trail {
-	const SIZE: f32 = 3.;
-	const HALF_LIFE: f32 = 8.0;
-	const ALIVE_THRESHOLD: f32 = 0.025;
+	pub const SIZE: f32 = 3.;
+	pub const HALF_LIFE: f32 = 7.0;
+	pub const ALIVE_THRESHOLD: f32 = 0.0125;
+	pub const MERGE_RADIUS: f32 = super::Ant::TRAIL_SEP / 2.;
+	pub const MERGE_DIR_TOL: f32 = 0.5;
 
-	pub fn new(now: Instant, pos: Vector2<f32>, dir: Vector2<f32>, ty: Pheromone) -> Self {
+	pub fn new(pos: Vector2<f32>, dir: Vector2<f32>, ty: Pheromone) -> Self {
 		Self {
-			birth: now,
 			pos,
 			ty,
 			dir,
 			strength: 1.0,
+		}
+	}
+
+	pub fn clump(a: &Self, b: &Self) -> Option<Self> {
+		if a.pos.distance2(b.pos) < Self::MERGE_RADIUS.powi(2)
+			&& a.dir.dot(b.dir) > Self::MERGE_DIR_TOL
+			&& a.ty == b.ty
+		{
+			Some(Self {
+				pos: (a.pos + b.pos) / 2.,
+				dir: (a.dir + b.dir) / 2.,
+				ty: a.ty,
+				strength: a.strength + b.strength,
+			})
+		} else {
+			None
 		}
 	}
 }
@@ -38,8 +53,8 @@ impl GameObject<World> for Trail {
 	type Action = ();
 
 	fn update(&mut self, external: &External, _messenger: &Messenger) -> Option<Self::Action> {
-		let elapsed = external.now.duration_since(self.birth).as_secs_f32();
-		self.strength = 0.5f32.powf(elapsed / Self::HALF_LIFE);
+		let rate = -std::f32::consts::LN_2 / Self::HALF_LIFE;
+		self.strength += external.delta * rate * self.strength;
 		None
 	}
 

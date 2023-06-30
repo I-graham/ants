@@ -10,6 +10,8 @@ pub use messenger::*;
 pub use std::sync::mpsc::Sender;
 pub use utils::*;
 
+use tracing::trace_span;
+use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 use world::World;
 
@@ -40,7 +42,18 @@ pub trait GameObject<Scene> {
 }
 
 pub fn play() -> ! {
-	use winit::event::{Event, WindowEvent};
+	let mut tracing_guard = if cfg!(feature = "profile") {
+		use tracing_flame::FlameLayer;
+		use tracing_subscriber::prelude::*;
+
+		let (flame_layer, _guard) = FlameLayer::with_file("./tracing.folded").unwrap();
+
+		tracing_subscriber::registry().with(flame_layer).init();
+
+		Some(_guard)
+	} else {
+		None
+	};
 
 	let event_loop = EventLoop::new();
 	let mut game = state::GameState::new(&event_loop);
@@ -82,6 +95,11 @@ pub fn play() -> ! {
 					.external
 					.mouse_button(&button, state == winit::event::ElementState::Pressed),
 
+				WindowEvent::Destroyed => {
+					tracing_guard.take();
+					flow.set_exit()
+				}
+
 				_ => {}
 			},
 
@@ -101,7 +119,11 @@ pub fn play() -> ! {
 
 				game.step();
 				game.draw();
-				game.api.submit();
+				{
+					let span = trace_span!("Presenting.");
+					let _gaurd = span.enter();
+					game.api.submit();
+				}
 			}
 
 			_ => {}

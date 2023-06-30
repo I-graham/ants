@@ -1,9 +1,9 @@
 use cgmath::*;
 
-mod grid;
 mod freelist;
-pub use grid::*;
+mod grid;
 pub use freelist::*;
+pub use grid::*;
 
 pub fn unit_in_dir(deg: f32) -> Vector2<f32> {
 	vec2(deg.sin(), deg.cos())
@@ -11,6 +11,10 @@ pub fn unit_in_dir(deg: f32) -> Vector2<f32> {
 
 pub fn angle(v: Vector2<f32>) -> f32 {
 	std::f32::consts::FRAC_PI_2 - v.y.atan2(v.x)
+}
+
+pub fn dist((x1, y1): (f32, f32), (x2, y2): (f32, f32)) -> f32 {
+	(x1 - x2).hypot(y1 - y2)
 }
 
 pub fn unit_toward(from: Vector2<f32>, to: Vector2<f32>) -> Vector2<f32> {

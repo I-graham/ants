@@ -3,12 +3,14 @@ use std::time::*;
 use strum::*;
 use strum_macros::*;
 
+use super::world::*;
 use super::{Grid, Griddable};
 
 #[derive(Clone, Copy, EnumDiscriminants, EnumCount)]
 #[strum_discriminants(name(MessageTypes))]
 pub enum Signal {
 	ConsumeFood,
+	ClumpTrails(Pheromone),
 }
 
 pub struct Messenger {
@@ -37,7 +39,7 @@ impl Messenger {
 		Self {
 			now: Instant::now(),
 			global: Buckets::default(),
-			locals: Grid::new(10000.),
+			locals: Grid::new(128.),
 			sender,
 			receiver,
 		}
@@ -88,7 +90,7 @@ impl Messenger {
 		types: &'a [MessageTypes],
 	) -> impl Iterator<Item = ((f32, f32), Signal)> + 'a {
 		self.locals
-			.query(pos, radius)
+			.query_at(pos, radius)
 			.map(|&dispatch| (dispatch.pos(), dispatch.1.signal))
 			.filter(|(_, signal)| types.contains(&MessageTypes::from(signal)))
 	}

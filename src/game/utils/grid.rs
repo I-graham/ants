@@ -31,12 +31,8 @@ impl<T: Griddable> Grid<T> {
 		}
 	}
 
-	pub fn from_iter<I: Iterator<Item = T>>(scale: f32, iter: I) -> Self {
-		let mut grid = Grid::new(scale);
-		for i in iter {
-			grid.insert(i);
-		}
-		grid
+	pub fn count(&self) -> usize {
+		self.elems.count()
 	}
 
 	pub fn insert(&mut self, item: T) {
@@ -48,30 +44,35 @@ impl<T: Griddable> Grid<T> {
 	pub fn get(&self, pos: (f32, f32)) -> Option<&T> {
 		let cell = self.grid.get(&Self::grid_cell(self.scale, pos));
 		cell.and_then(|v| {
-			v.iter().find_map(|&index| {
-				let elem = &self.elems[index];
-				if elem.pos() == pos {
-					Some(elem)
-				} else {
-					None
-				}
-			})
+			v.iter()
+				.find_map(|&index| Some(&self.elems[index]).filter(|e| e.pos() == pos))
 		})
 	}
 
 	pub fn remove(&mut self, pos: (f32, f32)) -> Option<T> {
 		let cell = self.grid.get_mut(&Self::grid_cell(self.scale, pos));
 
-		let index = cell.and_then(|v| v.iter().find(|&&index| self.elems[index].pos() == pos));
-
-		index.and_then(|&i| self.elems.remove(i))
+		if let Some(v) = cell {
+			if let Some((cell_i, &elem_i)) = v
+				.iter()
+				.enumerate()
+				.find(|(_, &index)| self.elems[index].pos() == pos)
+			{
+				v.swap_remove(cell_i);
+				self.elems.remove(elem_i)
+			} else {
+				None
+			}
+		} else {
+			None
+		}
 	}
 
 	pub fn nearest_by<P>(&self, pos: (f32, f32), radius: f32, mut predicate: P) -> Option<(f32, &T)>
 	where
 		P: FnMut(f32, &T) -> Option<f32>,
 	{
-		self.query_dist(pos, radius)
+		self.query_with_dist(pos, radius)
 			.filter_map(|(d, t)| predicate(d, t).zip(Some(t)))
 			.min_by(|(a, _), (b, _)| a.partial_cmp(b).unwrap())
 	}
@@ -81,15 +82,19 @@ impl<T: Griddable> Grid<T> {
 	}
 
 	pub fn nearest_dist(&self, pos: (f32, f32), radius: f32) -> Option<(f32, &T)> {
-		self.query_dist(pos, radius)
+		self.query_with_dist(pos, radius)
 			.min_by(|(d1, _), (d2, _)| d1.partial_cmp(d2).unwrap())
 	}
 
-	pub fn query(&self, pos: (f32, f32), radius: f32) -> impl Iterator<Item = &T> {
-		self.query_dist(pos, radius).map(|(_, item)| item)
+	pub fn query_at(&self, pos: (f32, f32), radius: f32) -> impl Iterator<Item = &T> {
+		self.query_with_dist(pos, radius).map(|(_, item)| item)
 	}
 
-	pub fn query_dist(&self, (x, y): (f32, f32), radius: f32) -> impl Iterator<Item = (f32, &T)> {
+	pub fn query_with_dist(
+		&self,
+		(x, y): (f32, f32),
+		radius: f32,
+	) -> impl Iterator<Item = (f32, &T)> {
 		let (hi_x, hi_y) = Self::grid_cell(self.scale, (x + radius, y + radius));
 		let (lo_x, lo_y) = Self::grid_cell(self.scale, (x - radius, y - radius));
 
@@ -99,9 +104,37 @@ impl<T: Griddable> Grid<T> {
 			.flatten()
 			.map(move |&index| {
 				let item = &self.elems[index];
-				((item.x() - x).hypot(item.y() - y), item)
+				(dist(item.pos(), (x, y)), item)
 			})
-			.filter(move |(d, _)| *d <= radius)
+			.filter(move |(d, i)| *d <= radius && i.alive())
+	}
+
+	//pairs not guaranteed to come out in any particular order.
+	//all pairs are unordered and distinctly located.
+	pub fn nearby_pairs(&self, distance: f32) -> impl Iterator<Item = (&T, &T)> {
+		let radius = (distance / self.scale).ceil() as i32;
+
+		let is_nearby =
+			move |a: &T, b: &T| -> bool { a.pos() < b.pos() && dist(a.pos(), b.pos()) <= distance };
+
+		self.grid
+			.iter()
+			.flat_map(move |(&(cx, cy), ids)| {
+				(cx..=cx + radius)
+					.flat_map(move |ix| (cy..=cy + radius).map(move |iy| (ix, iy)))
+					.filter_map(move |cell2| self.grid.get(&cell2))
+					.map(move |jds| (ids, jds))
+			})
+			.flat_map(move |(ids, jds)| {
+				let ielems = ids.iter().map(|&i| &self.elems[i]);
+				let jelems = jds.iter().map(|&j| &self.elems[j]);
+				ielems.flat_map(move |i| {
+					jelems
+						.clone()
+						.filter(move |j| is_nearby(i, j))
+						.map(move |j| (i, j))
+				})
+			})
 	}
 
 	pub fn retain<P: FnMut(&T) -> bool>(&mut self, mut predicate: P) {
@@ -119,6 +152,8 @@ impl<T: Griddable> Grid<T> {
 	}
 
 	pub fn maintain(&mut self) {
+		self.elems.sort_frees();
+
 		let mut moved = vec![];
 
 		for (&bucket, vec) in &mut self.grid {
@@ -150,22 +185,44 @@ impl<T: Griddable> Grid<T> {
 	}
 
 	pub fn iter(&self) -> impl Iterator<Item = &T> {
-		self.elems.iter()
+		self.elems.iter().filter(|e| e.alive())
 	}
 
 	pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
-		self.elems.iter_mut()
+		self.elems.iter_mut().filter(|e| e.alive())
+	}
+
+	pub fn from_iter<I: Iterator<Item = T>>(scale: f32, iter: I) -> Self {
+		let mut grid = Grid::new(scale);
+		for i in iter {
+			grid.insert(i);
+		}
+		grid
 	}
 
 	fn grid_cell(scale: f32, (x, y): (f32, f32)) -> (i32, i32) {
 		debug_assert!(!x.is_nan() && !y.is_nan());
 		((x / scale).floor() as i32, (y / scale).floor() as i32)
 	}
+
+	pub fn dbg_analytics(&self) {
+		let cells = self.grid.len();
+		let len = self.elems.count();
+		let max = self.grid.values().map(|v| v.len()).max();
+		let mean = self.grid.values().map(|v| v.len()).sum::<usize>() as f32 / cells as f32;
+		dbg!(cells);
+		dbg!(len);
+		dbg!(max);
+		dbg!(mean);
+	}
 }
 
 impl<T: Griddable + Send + Sync> Grid<T> {
 	pub fn par_maintain(&mut self) {
 		use std::sync::*;
+
+		self.elems.sort_frees();
+
 		let (moved_s, moved_r) = mpsc::channel();
 		let elems = RwLock::new(&mut self.elems);
 
