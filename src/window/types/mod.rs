@@ -118,8 +118,10 @@ impl External {
 
 #[derive(IntoStaticStr, EnumIter, Hash, PartialEq, Debug, Eq, Clone, Copy)]
 pub enum Texture {
-	Flat,
 	Ant,
+	Swirl,
+	Flat,
+	Queen,
 }
 
 impl Texture {

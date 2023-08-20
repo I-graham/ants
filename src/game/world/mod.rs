@@ -11,23 +11,19 @@ use tracing::trace_span;
 use utils::Grid;
 
 pub struct World {
-	ants: Grid<Ant>,
+	queen: Queen,
+	ants: Grid<Worker>,
 	food: Grid<Food>,
 	trails: Grid<Trail>,
 }
 
 impl World {
 	pub fn new() -> Self {
-		const NUM_ANTS: usize = 150;
 		const NUM_FOOD: usize = 100;
 
 		Self {
-			ants: Grid::from_iter(
-				5. * Ant::SMELL_RAD,
-				(0..NUM_ANTS)
-					.map(|i| Ant::new((0., 0.).into(), 360.0 * i as f32 / NUM_ANTS as f32)),
-			),
-
+			queen: Queen::new((0., 0.).into(), 0.),
+			ants: Grid::new(200.),
 			food: Grid::from_iter(
 				32.,
 				std::iter::repeat_with(|| Food::new(utils::rand_in2d(-1000., 1000.)))
@@ -45,6 +41,8 @@ impl GameObject<()> for World {
 	fn plan(&self, _: &(), external: &External, messenger: &Sender<Dispatch>) {
 		let span = trace_span!("Planning");
 		let _guard = span.enter();
+
+		self.queen.plan(self, external, messenger);
 
 		self.ants
 			.par_iter()
@@ -68,10 +66,20 @@ impl GameObject<()> for World {
 		{
 			let span = trace_span!("Ants");
 			let _guard = span.enter();
+
 			for ant in self.ants.iter_mut() {
 				if let Some(trail) = ant.update(external, messenger) {
 					self.trails.insert(trail)
 				}
+			}
+
+			if let Some(plan) = self.queen.update(external, messenger) {
+				let worker = Ant::<_>::new_with_plan(
+					self.queen.pos,
+					rand_in(0., std::f32::consts::TAU),
+					plan,
+				);
+				self.ants.insert(worker);
 			}
 		}
 
@@ -130,6 +138,8 @@ impl GameObject<()> for World {
 		for ant in self.ants.iter() {
 			ant.render(external, out);
 		}
+
+		self.queen.render(external, out);
 	}
 
 	fn cleanup(&mut self) {
@@ -140,6 +150,6 @@ impl GameObject<()> for World {
 		self.food.cleanup();
 		self.trails.cleanup();
 
-		self.trails.dbg_analytics();
+		//self.trails.dbg_analytics();
 	}
 }
