@@ -6,6 +6,8 @@ use cgmath::*;
 use std::hash::Hash;
 use std::time::Instant;
 use strum_macros::{EnumIter, IntoStaticStr};
+use ui::*;
+use winit::event::*;
 
 pub use animation::Animation;
 
@@ -14,9 +16,9 @@ pub type TextureMap = fnv::FnvHashMap<Texture, Instance>;
 pub struct External {
 	pub scroll: f32,
 	pub mouse_pos: (f32, f32),
-	pub left_mouse: ui::MouseState,
-	pub right_mouse: ui::MouseState,
-	pub keymap: fnv::FnvHashMap<winit::event::VirtualKeyCode, bool>,
+	pub left_mouse: ButtonState,
+	pub right_mouse: ButtonState,
+	pub keymap: fnv::FnvHashMap<VirtualKeyCode, ButtonState>,
 
 	pub texture_map: TextureMap,
 	pub win_size: (u32, u32),
@@ -31,6 +33,10 @@ impl External {
 		self.now = now;
 
 		self.update_mouse();
+
+		for state in self.keymap.values_mut() {
+			state.update(state.is_down());
+		}
 	}
 
 	pub fn view_dims(&self) -> Vector2<f32> {
@@ -96,8 +102,7 @@ impl External {
 		);
 	}
 
-	pub fn capture_key(&mut self, input: winit::event::KeyboardInput) {
-		use winit::event::{ElementState, KeyboardInput, VirtualKeyCode};
+	pub fn capture_key(&mut self, input: KeyboardInput) {
 		let KeyboardInput {
 			virtual_keycode: key,
 			state,
@@ -105,14 +110,20 @@ impl External {
 		} = input;
 		match key {
 			Some(key) if (VirtualKeyCode::A..VirtualKeyCode::F12).contains(&key) => {
-				self.keymap.insert(key, state == ElementState::Pressed);
+				let down = state == ElementState::Pressed;
+
+				if let Some(button) = self.keymap.get_mut(&key) {
+					button.update(down);
+				} else {
+					self.keymap.insert(key, ButtonState::new(down));
+				}
 			}
 			_ => {}
 		}
 	}
 
-	pub fn key(&self, key: winit::event::VirtualKeyCode) -> bool {
-		*self.keymap.get(&key).unwrap_or(&false)
+	pub fn key(&self, key: VirtualKeyCode) -> ButtonState {
+		*self.keymap.get(&key).unwrap_or(&ButtonState::Up)
 	}
 }
 

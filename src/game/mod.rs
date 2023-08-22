@@ -73,7 +73,9 @@ pub fn play() -> ! {
 					game.api.resize(dims);
 				}
 
-				WindowEvent::KeyboardInput { input, .. } => game.api.external.capture_key(input),
+				WindowEvent::KeyboardInput { input, .. } => {
+					game.api.external.capture_key(input);
+				}
 
 				WindowEvent::MouseWheel { delta, .. } => {
 					use winit::dpi::PhysicalPosition;

@@ -49,6 +49,7 @@ impl GameObject<()> for World {
 			.for_each_with(messenger.clone(), |sender, ant| {
 				ant.plan(self, external, sender);
 			});
+
 	}
 
 	fn update(&mut self, external: &External, messenger: &Messenger) -> Option<Self::Action> {
@@ -67,19 +68,19 @@ impl GameObject<()> for World {
 			let span = trace_span!("Ants");
 			let _guard = span.enter();
 
-			for ant in self.ants.iter_mut() {
-				if let Some(trail) = ant.update(external, messenger) {
-					self.trails.insert(trail)
-				}
-			}
-
 			if let Some(plan) = self.queen.update(external, messenger) {
-				let worker = Ant::<_>::new_with_plan(
+				let worker = Ant::<_>::from_plan(
 					self.queen.pos,
 					rand_in(0., std::f32::consts::TAU),
 					plan,
 				);
 				self.ants.insert(worker);
+			}
+
+			for ant in self.ants.iter_mut() {
+				if let Some(trail) = ant.update(external, messenger) {
+					self.trails.insert(trail)
+				}
 			}
 		}
 

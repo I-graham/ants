@@ -8,10 +8,9 @@ pub struct WorkerPlan {
 	last_trail: Vector2<f32>,
 }
 
-#[derive(Default, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 enum WorkerState {
-	#[default]
-	Wander,
+	Wander(Vector2<f32>),
 	GoToFood(Vector2<f32>),
 	GoToHome(Vector2<f32>),
 }
@@ -19,21 +18,31 @@ enum WorkerState {
 impl AntPlan for WorkerPlan {
 	type Action = Trail;
 
+	fn spawn(pos: Vector2<f32>, dir: Vector2<f32>) -> Self {
+		Self {
+			state: WorkerState::Wander(pos + dir),
+			last_trail: pos,
+		}
+	}
+
 	fn next_plan(&self, ant: &Ant<Self>, world: &World, messenger: &Sender<Dispatch>) -> Self {
 		use WorkerState::*;
 
 		let state = match self.state {
-			Wander => {
+			Wander(toward) => {
 				if let Some(food) = world.food.nearest(ant.pos(), Self::SMELL_RAD) {
 					GoToFood(food.pos)
+				} else if ant.pos.distance(toward) < Self::EXPLORATION {
+					let offset = rand_in2d(-1., 1.);
+					Wander(ant.pos + 2. * Self::EXPLORATION * (ant.dir + offset))
 				} else {
-					self.state
+					Wander(toward)
 				}
 			}
 
 			GoToFood(food) => {
 				if world.food.get(food.into()).is_none() {
-					Wander
+					Wander(food)
 				} else if food.distance(ant.pos) < Self::TRAIL_SEP {
 					let message = Dispatch::new(Some(food.into()), Signal::ConsumeFood, 0.);
 					messenger.send(message).expect("Unable to send message.");
@@ -59,29 +68,22 @@ impl AntPlan for WorkerPlan {
 				if normal != curr {
 					GoToHome(normal)
 				} else {
-					Wander
+					Wander(curr)
 				}
 			}
 		};
 
-		Self {
-			state,
-			..*self
-		}
+		Self { state, ..*self }
 	}
 
 	fn action(
 		&mut self,
 		ant: &Ant<Self>,
-		external: &External,
+		_external: &External,
 	) -> (Vector2<f32>, Option<Self::Action>) {
 		use WorkerState::*;
 		let (dir, pheromone) = match self.state {
-			Wander => {
-				let offset =
-					external.delta * rand_in(-Self::EXPLORATION, Self::EXPLORATION).powi(3);
-				(unit_in_dir(angle(ant.dir) + offset), Pheromone::ToHome)
-			}
+			Wander(toward) => (toward - ant.pos, Pheromone::ToHome),
 
 			GoToFood(pos) => (pos - ant.pos, Pheromone::ToHome),
 
@@ -100,14 +102,5 @@ impl AntPlan for WorkerPlan {
 
 	fn texture(&self) -> Texture {
 		Texture::Ant
-	}
-}
-
-impl Default for WorkerPlan {
-	fn default() -> Self {
-		Self {
-			state: Default::default(),
-			last_trail: vec2(0., 0.),
-		}
 	}
 }

@@ -55,6 +55,7 @@ impl GameObject<World> for Trail {
 	type Action = ();
 
 	fn update(&mut self, external: &External, _messenger: &Messenger) -> Option<Self::Action> {
+		//Integrates to 
 		self.strength += external.delta * Self::DECAY_RATE * self.strength;
 		None
 	}
@@ -65,6 +66,7 @@ impl GameObject<World> for Trail {
 			Pheromone::ToHome => (1., 0., 0., self.strength),
 		};
 
+		//Some math shows this is the time elapsed
 		let elapsed = f32::ln(self.strength) / Self::DECAY_RATE;
 
 		Some(

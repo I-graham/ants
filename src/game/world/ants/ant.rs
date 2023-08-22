@@ -14,14 +14,15 @@ pub struct Ant<Plan: AntPlan> {
 
 impl<Plan: AntPlan> Ant<Plan> {
 	pub fn new(pos: Vector2<f32>, dir: f32) -> Self {
+		let dir = unit_in_dir(dir);
 		Self {
 			pos,
-			dir: unit_in_dir(dir),
-			behavior: Cell::new(Plan::default()),
+			dir,
+			behavior: Cell::new(Plan::spawn(pos, dir)),
 		}
 	}
 
-	pub fn new_with_plan(pos: Vector2<f32>, dir: f32, plan: Plan) -> Self {
+	pub fn from_plan(pos: Vector2<f32>, dir: f32, plan: Plan) -> Self {
 		Self {
 			pos,
 			dir: unit_in_dir(dir),
@@ -40,7 +41,9 @@ impl<Plan: AntPlan> GameObject<World> for Ant<Plan> {
 	}
 
 	fn update(&mut self, external: &External, _messenger: &Messenger) -> Option<Plan::Action> {
-		let (next_dir, action) = self.behavior.get().action(self, external);
+		let mut plan = self.behavior.get();
+		let (next_dir, action) = plan.action(self, external);
+		self.behavior.set(plan);
 
 		let next_dir = if next_dir.magnitude() > 0. {
 			next_dir.normalize()

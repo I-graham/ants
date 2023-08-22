@@ -34,20 +34,20 @@ impl GameState {
 
 		self.api.external.camera.pos.x += CAM_MOVE_SPEED
 			* self.api.external.delta
-			* (self.api.external.key(VirtualKeyCode::D) as i32
-				- self.api.external.key(VirtualKeyCode::A) as i32) as f32;
+			* (self.api.external.key(VirtualKeyCode::D).is_down() as i32
+				- self.api.external.key(VirtualKeyCode::A).is_down() as i32) as f32;
 
 		self.api.external.camera.pos.y += CAM_MOVE_SPEED
 			* self.api.external.delta
-			* (self.api.external.key(VirtualKeyCode::W) as i32
-				- self.api.external.key(VirtualKeyCode::S) as i32) as f32;
+			* (self.api.external.key(VirtualKeyCode::W).is_down() as i32
+				- self.api.external.key(VirtualKeyCode::S).is_down() as i32) as f32;
 
 		const CAM_SCALE_SPEED: f32 = 50.;
 
 		self.api.external.camera.scale += CAM_SCALE_SPEED
 			* self.api.external.delta
-			* (self.api.external.key(VirtualKeyCode::Q) as i32
-				- self.api.external.key(VirtualKeyCode::Z) as i32) as f32;
+			* (self.api.external.key(VirtualKeyCode::Q).is_down() as i32
+				- self.api.external.key(VirtualKeyCode::Z).is_down() as i32) as f32;
 	}
 
 	pub fn draw(&mut self) {

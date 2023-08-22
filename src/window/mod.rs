@@ -43,8 +43,8 @@ impl WinApi {
 			external: External {
 				scroll: 0.,
 				mouse_pos: (0.0, 0.0),
-				left_mouse: ui::MouseState::Up,
-				right_mouse: ui::MouseState::Up,
+				left_mouse: ui::ButtonState::Up,
+				right_mouse: ui::ButtonState::Up,
 				keymap: fnv::FnvHashMap::default(),
 				texture_map,
 				camera: Camera {
