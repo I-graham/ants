@@ -31,7 +31,8 @@ impl<Plan: AntPlan> Ant<Plan> {
 	}
 }
 
-impl<Plan: AntPlan> GameObject<World> for Ant<Plan> {
+impl<Plan: AntPlan> GameObject for Ant<Plan> {
+	type Scene = World;
 	type Action = Plan::Action;
 
 	fn plan(&self, world: &World, _external: &External, messenger: &Sender<Dispatch>) {

@@ -15,7 +15,8 @@ impl Food {
 	}
 }
 
-impl GameObject<World> for Food {
+impl GameObject for Food {
+	type Scene = World;
 	type Action = ();
 
 	fn update(&mut self, _external: &External, messenger: &Messenger) -> Option<Self::Action> {

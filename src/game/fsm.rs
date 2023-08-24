@@ -1,6 +1,7 @@
 use super::*;
 
-pub trait Automaton<Scene> {
+pub trait Automaton {
+	type Scene;
 	type Action;
 	type State: Copy + Eq;
 
@@ -21,7 +22,7 @@ pub trait Automaton<Scene> {
 		self.state()
 	}
 
-	fn plan(&self, _scene: &Scene, _external: &External, _messenger: &Sender<Dispatch>) {}
+	fn plan(&self, _scene: &Self::Scene, _external: &External, _messenger: &Sender<Dispatch>) {}
 
 	fn update(&mut self, _external: &External, _messenger: &Messenger) -> Option<Self::Action> {
 		None
@@ -40,10 +41,11 @@ pub trait Automaton<Scene> {
 	fn cleanup(&mut self) {}
 }
 
-impl<Scene, T: Automaton<Scene>> GameObject<Scene> for T {
-	type Action = <T as Automaton<Scene>>::Action;
+impl<T: Automaton> GameObject for T {
+	type Scene = T::Scene;
+	type Action = T::Action;
 
-	fn plan(&self, scene: &Scene, external: &External, messenger: &Sender<Dispatch>) {
+	fn plan(&self, scene: &Self::Scene, external: &External, messenger: &Sender<Dispatch>) {
 		Automaton::plan(self, scene, external, messenger)
 	}
 
@@ -62,6 +64,10 @@ impl<Scene, T: Automaton<Scene>> GameObject<Scene> for T {
 
 	fn render(&self, context: &External, out: &mut Vec<Instance>) {
 		Automaton::render(self, context, out)
+	}
+
+	fn instance(&self, external: &External) -> Option<Instance> {
+		Automaton::instance(self, external)
 	}
 
 	fn cleanup(&mut self) {

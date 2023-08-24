@@ -2,8 +2,12 @@ use cgmath::*;
 
 mod freelist;
 mod grid;
+mod relaxed;
+
+use super::*;
 pub use freelist::*;
 pub use grid::*;
+pub use relaxed::*;
 
 pub fn unit_in_dir(deg: f32) -> Vector2<f32> {
 	vec2(deg.sin(), deg.cos())

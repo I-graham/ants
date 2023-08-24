@@ -51,7 +51,8 @@ impl Trail {
 	}
 }
 
-impl GameObject<World> for Trail {
+impl GameObject for Trail {
+	type Scene = World;
 	type Action = ();
 
 	fn update(&mut self, external: &External, _messenger: &Messenger) -> Option<Self::Action> {

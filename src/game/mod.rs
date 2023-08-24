@@ -15,10 +15,11 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 use world::World;
 
-pub trait GameObject<Scene> {
+pub trait GameObject {
+	type Scene;
 	type Action;
 
-	fn plan(&self, _scene: &Scene, _external: &External, _messenger: &Sender<Dispatch>) {}
+	fn plan(&self, _scene: &Self::Scene, _external: &External, _messenger: &Sender<Dispatch>) {}
 
 	fn update(&mut self, _external: &External, _messenger: &Messenger) -> Option<Self::Action> {
 		None

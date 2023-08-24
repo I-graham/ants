@@ -35,7 +35,8 @@ impl World {
 	}
 }
 
-impl GameObject<()> for World {
+impl GameObject for World {
+	type Scene = ();
 	type Action = ();
 
 	fn plan(&self, _: &(), external: &External, messenger: &Sender<Dispatch>) {
