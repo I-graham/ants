@@ -83,5 +83,11 @@ impl<Plan: AntPlan> utils::Griddable for Ant<Plan> {
 	}
 }
 
-unsafe impl<Plan: AntPlan + Send + Sync> Send for Ant<Plan> {}
-unsafe impl<Plan: AntPlan + Send + Sync> Sync for Ant<Plan> {}
+impl<Plan: AntPlan> utils::Relax for Ant<Plan> {
+	fn plan_frequency(&self) -> f32 {
+		60.
+	}
+}
+
+unsafe impl<Plan: AntPlan + Send> Send for Ant<Plan> {}
+unsafe impl<Plan: AntPlan + Sync> Sync for Ant<Plan> {}

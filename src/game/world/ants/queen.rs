@@ -8,7 +8,7 @@ pub enum QueenPlan {
 impl AntPlan for QueenPlan {
 	type Action = WorkerPlan;
 
-	const EXPLORATION: f32 = 20.;
+	const TURN_SPEED: f32 = 20.;
 
 	fn spawn(pos: Vector2<f32>, dir: Vector2<f32>) -> Self {
 		Self::Wander(pos + dir)

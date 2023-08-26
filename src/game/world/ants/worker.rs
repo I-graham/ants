@@ -60,7 +60,7 @@ impl AntPlan for WorkerPlan {
 					.query_with_dist(ant.pos.into(), Self::TRAIL_SMELL_RAD)
 					.filter(|(_, t)| t.ty == Pheromone::ToHome)
 				{
-					sum_dir -= trail.dir.normalize_to(trail.strength / (0.5 + d));
+					sum_dir -= trail.dir.normalize_to(trail.strength / (0.25 + d));
 				}
 
 				let normal = sum_dir.normalize();
@@ -68,7 +68,7 @@ impl AntPlan for WorkerPlan {
 				if normal != curr {
 					GoToHome(normal)
 				} else {
-					Wander(curr)
+					Wander(ant.pos + curr)
 				}
 			}
 		};

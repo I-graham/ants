@@ -49,3 +49,9 @@ impl utils::Griddable for Food {
 		self.amount > 0
 	}
 }
+
+impl utils::Relax for Food {
+	fn plan_frequency(&self) -> f32 {
+		60.
+	}
+}

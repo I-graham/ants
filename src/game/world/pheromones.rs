@@ -56,7 +56,7 @@ impl GameObject for Trail {
 	type Action = ();
 
 	fn update(&mut self, external: &External, _messenger: &Messenger) -> Option<Self::Action> {
-		//Integrates to 
+		//Integrates to
 		self.strength += external.delta * Self::DECAY_RATE * self.strength;
 		None
 	}
@@ -80,6 +80,12 @@ impl GameObject for Trail {
 			}
 			.scale(Self::SIZE),
 		)
+	}
+}
+
+impl utils::Relax for Trail {
+	fn plan_frequency(&self) -> f32 {
+		60.
 	}
 }
 

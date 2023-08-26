@@ -12,9 +12,9 @@ use utils::Grid;
 
 pub struct World {
 	queen: Queen,
-	ants: Grid<Worker>,
-	food: Grid<Food>,
-	trails: Grid<Trail>,
+	ants: Grid<Relaxed<Worker>>,
+	food: Grid<Relaxed<Food>>,
+	trails: Grid<Relaxed<Trail>>,
 }
 
 impl World {
@@ -26,7 +26,7 @@ impl World {
 			ants: Grid::new(200.),
 			food: Grid::from_iter(
 				32.,
-				std::iter::repeat_with(|| Food::new(utils::rand_in2d(-1000., 1000.)))
+				std::iter::repeat_with(|| Food::new(utils::rand_in2d(-1000., 1000.)).into())
 					.take(NUM_FOOD),
 			),
 
@@ -50,7 +50,6 @@ impl GameObject for World {
 			.for_each_with(messenger.clone(), |sender, ant| {
 				ant.plan(self, external, sender);
 			});
-
 	}
 
 	fn update(&mut self, external: &External, messenger: &Messenger) -> Option<Self::Action> {
@@ -70,17 +69,14 @@ impl GameObject for World {
 			let _guard = span.enter();
 
 			if let Some(plan) = self.queen.update(external, messenger) {
-				let worker = Ant::<_>::from_plan(
-					self.queen.pos,
-					rand_in(0., std::f32::consts::TAU),
-					plan,
-				);
-				self.ants.insert(worker);
+				let worker =
+					Ant::<_>::from_plan(self.queen.pos, rand_in(0., std::f32::consts::TAU), plan);
+				self.ants.insert(worker.into());
 			}
 
 			for ant in self.ants.iter_mut() {
 				if let Some(trail) = ant.update(external, messenger) {
-					self.trails.insert(trail)
+					self.trails.insert(trail.into())
 				}
 			}
 		}
@@ -98,6 +94,7 @@ impl GameObject for World {
 
 				self.trails
 					.nearby_pairs(Trail::MERGE_RADIUS)
+					.filter(|(a, b)| a.ready() || b.ready())
 					.filter_map(|(a, b)| Trail::clump(a, b).zip(Some((a.pos(), b.pos()))))
 					.collect::<Vec<_>>()
 			};
@@ -110,7 +107,7 @@ impl GameObject for World {
 					if self.trails.get(p1).is_some() && self.trails.get(p2).is_some() {
 						self.trails.remove(p1);
 						self.trails.remove(p2);
-						self.trails.insert(trail);
+						self.trails.insert(trail.into());
 					}
 				}
 			}
@@ -152,6 +149,7 @@ impl GameObject for World {
 		self.food.cleanup();
 		self.trails.cleanup();
 
-		//self.trails.dbg_analytics();
+		self.ants.dbg_analytics();
+		self.trails.dbg_analytics();
 	}
 }

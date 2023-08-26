@@ -3,7 +3,7 @@ use super::*;
 pub trait AntPlan: Sized + Copy + PartialEq {
 	const SMELL_RAD: f32 = 50.;
 	const TRAIL_SMELL_RAD: f32 = 5. * Self::TRAIL_SEP;
-	const SPEED: f32 = 15.0;
+	const SPEED: f32 = 40.0;
 	const TURN_SPEED: f32 = 180. * std::f32::consts::TAU / 360.;
 	const EXPLORATION: f32 = 10.;
 	const TRAIL_SEP: f32 = 15.0;
