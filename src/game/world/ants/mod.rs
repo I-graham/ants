@@ -7,8 +7,10 @@ use super::*;
 use crate::game::*;
 use crate::window::*;
 use cgmath::*;
-use plans::*;
 
 pub use ant::Ant;
-pub type Worker = Ant<worker::WorkerPlan>;
-pub type Queen = Ant<queen::QueenPlan>;
+pub use plans::AntPlan;
+pub use queen::QueenPlan;
+pub use worker::WorkerPlan;
+pub type Worker = Ant<WorkerPlan>;
+pub type Queen = Ant<QueenPlan>;

@@ -3,14 +3,12 @@ use std::time::*;
 use strum::*;
 use strum_macros::*;
 
-use super::world::*;
 use super::{Grid, Griddable};
 
 #[derive(Clone, Copy, EnumDiscriminants, EnumCount)]
 #[strum_discriminants(name(MessageTypes))]
 pub enum Signal {
 	ConsumeFood,
-	ClumpTrails(Pheromone),
 }
 
 pub struct Messenger {

@@ -13,7 +13,6 @@ pub use utils::*;
 use tracing::trace_span;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
-use world::World;
 
 pub trait GameObject {
 	type Scene;

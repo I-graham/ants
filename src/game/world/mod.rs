@@ -1,16 +1,22 @@
 mod ants;
 mod food;
+mod interface;
 mod pheromones;
 
-use super::*;
 pub use ants::*;
 pub use food::*;
 pub use pheromones::*;
+pub use interface::*;
+
+use super::*;
+use crate::window::*;
+use cgmath::*;
 use rayon::prelude::*;
 use tracing::trace_span;
 use utils::Grid;
 
 pub struct World {
+	interface: Interface,
 	queen: Queen,
 	ants: Grid<Relaxed<Worker>>,
 	food: Grid<Relaxed<Food>>,
@@ -22,6 +28,7 @@ impl World {
 		const NUM_FOOD: usize = 100;
 
 		Self {
+			interface: Default::default(),
 			queen: Queen::new((0., 0.).into(), 0.),
 			ants: Grid::new(200.),
 			food: Grid::from_iter(
@@ -55,6 +62,14 @@ impl GameObject for World {
 	fn update(&mut self, external: &External, messenger: &Messenger) -> Option<Self::Action> {
 		let span = trace_span!("Updating");
 		let _guard = span.enter();
+
+		{
+			let span = trace_span!("Interfacing");
+			let _guard = span.enter();
+			if let Some(trail) = self.interface.update(external, messenger) {
+				self.trails.insert(trail.into())
+			}
+		}
 
 		{
 			let span = trace_span!("Food");
@@ -149,7 +164,7 @@ impl GameObject for World {
 		self.food.cleanup();
 		self.trails.cleanup();
 
-		self.ants.dbg_analytics();
-		self.trails.dbg_analytics();
+		//self.ants.dbg_analytics();
+		//self.trails.dbg_analytics();
 	}
 }

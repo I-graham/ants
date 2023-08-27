@@ -1,6 +1,4 @@
 use super::*;
-use crate::game::*;
-use crate::window::*;
 use cgmath::*;
 
 pub struct Trail {

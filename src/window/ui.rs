@@ -26,6 +26,14 @@ impl ButtonState {
 		}
 	}
 
+	pub fn pressed(&self) -> bool {
+		*self == ButtonState::Clicked
+	}
+	
+	pub fn released(&self) -> bool {
+		*self == ButtonState::Released		
+	}
+
 	pub fn is_down(&self) -> bool {
 		use ButtonState::*;
 		match *self {

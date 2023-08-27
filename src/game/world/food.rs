@@ -1,7 +1,4 @@
-use cgmath::Vector2;
-
-use crate::game::*;
-use crate::window::*;
+use super::*;
 
 #[derive(Clone)]
 pub struct Food {

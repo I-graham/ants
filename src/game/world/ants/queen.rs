@@ -8,7 +8,7 @@ pub enum QueenPlan {
 impl AntPlan for QueenPlan {
 	type Action = WorkerPlan;
 
-	const TURN_SPEED: f32 = 20.;
+	const SPEED: f32 = 25.;
 
 	fn spawn(pos: Vector2<f32>, dir: Vector2<f32>) -> Self {
 		Self::Wander(pos + dir)
@@ -36,7 +36,7 @@ impl AntPlan for QueenPlan {
 			Self::Wander(toward) => {
 				use winit::event::VirtualKeyCode;
 
-				let spawned = if external.key(VirtualKeyCode::E) == ui::ButtonState::Clicked {
+				let spawned = if external.key(VirtualKeyCode::E).pressed() {
 					Some(WorkerPlan::spawn(ant.pos, unit_in_dir(rand_in(0., 360.))))
 				} else {
 					None
