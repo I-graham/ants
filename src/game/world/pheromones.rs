@@ -19,8 +19,6 @@ impl Trail {
 	pub const SIZE: f32 = 3.;
 	pub const HALF_LIFE: f32 = 7.0;
 	pub const ALIVE_THRESHOLD: f32 = 0.0125;
-	pub const MERGE_RADIUS: f32 = 10.;
-	pub const MERGE_DIR_TOL: f32 = 0.5;
 	pub const DECAY_RATE: f32 = -std::f32::consts::LN_2 / Self::HALF_LIFE;
 
 	pub fn new(pos: Vector2<f32>, dir: Vector2<f32>, ty: Pheromone) -> Self {
@@ -29,22 +27,6 @@ impl Trail {
 			ty,
 			dir,
 			strength: 1.0,
-		}
-	}
-
-	pub fn clump(a: &Self, b: &Self) -> Option<Self> {
-		if a.pos.distance2(b.pos) < Self::MERGE_RADIUS.powi(2)
-			&& a.dir.dot(b.dir) > Self::MERGE_DIR_TOL
-			&& a.ty == b.ty
-		{
-			Some(Self {
-				pos: (a.pos + b.pos) / 2.,
-				dir: (a.dir + b.dir) / 2.,
-				ty: a.ty,
-				strength: a.strength + b.strength,
-			})
-		} else {
-			None
 		}
 	}
 }

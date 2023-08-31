@@ -10,17 +10,16 @@ impl GameObject for Interface {
 	type Action = Trail;
 
 	fn update(&mut self, external: &External, _messenger: &Messenger) -> Option<Self::Action> {
-		use ui::ButtonState::*;
+		use ButtonState::*;
 		let pos = external.camera.screen_to_world(external.mouse_pos);
 
 		match (external.left_mouse, self.last_trail) {
-			(Clicked, _) => {
+			(Pressed, _) => {
 				self.last_trail = Some(pos);
 				None
 			}
 			(Down, Some(last))
-				if external.point_in_view(pos)
-				&& pos.distance(last) > 1.5 * Trail::MERGE_RADIUS =>
+				if external.point_in_view(pos) && pos.distance(last) > WorkerPlan::TRAIL_SEP =>
 			{
 				self.last_trail = Some(pos);
 				let trail = Trail::new(pos, unit_toward(pos, last), Pheromone::ToHome);

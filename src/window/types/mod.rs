@@ -1,16 +1,17 @@
 mod animation;
 mod camera;
+mod input;
 mod instance;
 mod texture;
 
 pub use camera::*;
+pub use input::*;
 pub use instance::*;
 pub use texture::*;
 
-use super::{glsl::*, ui};
+use super::glsl::*;
 use cgmath::*;
 use std::time::Instant;
-use ui::*;
 use winit::event::*;
 
 pub use animation::Animation;

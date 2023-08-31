@@ -33,7 +33,7 @@ impl AntPlan for WorkerPlan {
 				if let Some(food) = world.food.nearest(ant.pos(), Self::SMELL_RAD) {
 					GoToFood(food.pos)
 				} else if ant.pos.distance(toward) < Self::EXPLORATION {
-					let offset = rand_in2d(-1., 1.);
+					let offset = rand_in2d(-0.75, 0.75);
 					Wander(ant.pos + 2. * Self::EXPLORATION * (ant.dir + offset))
 				} else {
 					Wander(toward)
@@ -58,7 +58,7 @@ impl AntPlan for WorkerPlan {
 				for (d, trail) in world
 					.trails
 					.query_with_dist(ant.pos.into(), Self::TRAIL_SMELL_RAD)
-					.filter(|(_, t)| t.ty == Pheromone::ToHome)
+					.filter(|(_, t)| ant.dir.dot(t.dir) < 0.5 && t.ty == Pheromone::ToHome)
 				{
 					let toward_trail = unit_toward(trail.pos, ant.pos);
 					let direction = 0.5 * toward_trail + trail.dir;
@@ -66,6 +66,10 @@ impl AntPlan for WorkerPlan {
 				}
 
 				let normal = sum_dir.normalize();
+
+				if curr.magnitude() == 0. {
+					dbg!("!");
+				}
 
 				if normal != curr {
 					GoToHome(normal)

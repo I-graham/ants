@@ -1,7 +1,7 @@
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ButtonState {
 	Up,
-	Clicked,
+	Pressed,
 	Down,
 	Released,
 }
@@ -9,7 +9,7 @@ pub enum ButtonState {
 impl ButtonState {
 	pub fn new(down: bool) -> Self {
 		if down {
-			Self::Clicked
+			Self::Pressed
 		} else {
 			Self::Released
 		}
@@ -18,16 +18,16 @@ impl ButtonState {
 	pub fn update(&mut self, down: bool) {
 		use ButtonState::*;
 		match *self {
-			Up | Released if down => *self = Clicked,
-			Clicked if down => *self = Down,
-			Down | Clicked if !down => *self = Released,
+			Up | Released if down => *self = Pressed,
+			Pressed if down => *self = Down,
+			Down | Pressed if !down => *self = Released,
 			Released if !down => *self = Up,
 			_ => (),
 		}
 	}
 
 	pub fn pressed(&self) -> bool {
-		*self == ButtonState::Clicked
+		*self == ButtonState::Pressed
 	}
 	
 	pub fn released(&self) -> bool {
@@ -38,7 +38,7 @@ impl ButtonState {
 		use ButtonState::*;
 		match *self {
 			Up | Released => false,
-			Clicked | Down => true,
+			Pressed | Down => true,
 		}
 	}
 }

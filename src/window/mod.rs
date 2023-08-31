@@ -2,13 +2,11 @@ pub mod glsl;
 mod loader;
 mod reng;
 mod types;
-pub mod ui;
 
 pub use glsl::*;
 use std::time::Instant;
 
-pub use types::{Animation, Camera, External, Instance, Texture, TextureMap};
-pub use ui::*;
+pub use types::*;
 
 const START_WIN_SIZE: winit::dpi::PhysicalSize<f32> = winit::dpi::PhysicalSize {
 	width: 400.0,
@@ -43,8 +41,8 @@ impl WinApi {
 			external: External {
 				scroll: 0.,
 				mouse_pos: cgmath::vec2(0.0, 0.0),
-				left_mouse: ui::ButtonState::Up,
-				right_mouse: ui::ButtonState::Up,
+				left_mouse: ButtonState::Up,
+				right_mouse: ButtonState::Up,
 				keymap: fnv::FnvHashMap::default(),
 				texture_map,
 				camera: Camera {

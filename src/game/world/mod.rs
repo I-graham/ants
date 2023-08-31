@@ -5,8 +5,8 @@ mod pheromones;
 
 pub use ants::*;
 pub use food::*;
-pub use pheromones::*;
 pub use interface::*;
+pub use pheromones::*;
 
 use super::*;
 use crate::window::*;
@@ -37,7 +37,7 @@ impl World {
 					.take(NUM_FOOD),
 			),
 
-			trails: Grid::new(3. * Trail::MERGE_RADIUS),
+			trails: Grid::new(3. * WorkerPlan::TRAIL_SEP),
 		}
 	}
 }
@@ -99,33 +99,9 @@ impl GameObject for World {
 		{
 			let span = trace_span!("Trails");
 			let _guard = span.enter();
-			for trail in self.trails.iter_mut() {
+			self.trails.par_iter_mut().for_each(|trail| {
 				trail.update(external, messenger);
-			}
-
-			let nearby = {
-				let span = trace_span!("Finding Pairs");
-				let _guard = span.enter();
-
-				self.trails
-					.nearby_pairs(Trail::MERGE_RADIUS)
-					.filter(|(a, b)| a.ready() || b.ready())
-					.filter_map(|(a, b)| Trail::clump(a, b).zip(Some((a.pos(), b.pos()))))
-					.collect::<Vec<_>>()
-			};
-
-			{
-				let span = trace_span!("Merging Pairs");
-				let _guard = span.enter();
-
-				for (trail, (p1, p2)) in nearby {
-					if self.trails.get(p1).is_some() && self.trails.get(p2).is_some() {
-						self.trails.remove(p1);
-						self.trails.remove(p2);
-						self.trails.insert(trail.into());
-					}
-				}
-			}
+			});
 		}
 
 		rayon::in_place_scope(|s| {
