@@ -1,5 +1,5 @@
 use super::messenger::Messenger;
-use super::world::World;
+use crate::world::World;
 use super::GameObject;
 use crate::window::WinApi;
 use winit::event::VirtualKeyCode;

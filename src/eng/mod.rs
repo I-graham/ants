@@ -1,16 +1,13 @@
-mod fsm;
+pub mod utils;
 mod messenger;
 mod state;
-mod utils;
-mod world;
 
-use crate::window::{External, Instance};
-pub use fsm::*;
 pub use messenger::*;
 pub use std::sync::mpsc::Sender;
 pub use utils::*;
 
 use tracing::trace_span;
+use crate::window::{External, Instance};
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 

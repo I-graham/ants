@@ -4,7 +4,7 @@ mod queen;
 mod worker;
 
 use super::*;
-use crate::game::*;
+use crate::eng::*;
 use crate::window::*;
 use cgmath::*;
 

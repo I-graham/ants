@@ -2,11 +2,15 @@ use super::*;
 use cgmath::*;
 
 pub mod ui;
+mod animation;
 mod freelist;
+mod fsm;
 mod grid;
 mod relaxed;
 
+pub use animation::Animation;
 pub use freelist::*;
+pub use fsm::Automaton;
 pub use grid::*;
 pub use relaxed::*;
 

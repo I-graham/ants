@@ -11,9 +11,9 @@ pub use pheromones::*;
 use super::*;
 use crate::window::*;
 use cgmath::*;
+use eng::*;
 use rayon::prelude::*;
 use tracing::trace_span;
-use utils::Grid;
 
 pub struct World {
 	interface: Interface,

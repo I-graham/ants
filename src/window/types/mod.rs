@@ -1,4 +1,3 @@
-mod animation;
 mod camera;
 mod input;
 mod instance;
@@ -13,8 +12,6 @@ use super::glsl::*;
 use cgmath::*;
 use std::time::Instant;
 use winit::event::*;
-
-pub use animation::Animation;
 
 pub type TextureMap = fnv::FnvHashMap<Texture, Instance>;
 
