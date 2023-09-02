@@ -1,17 +1,9 @@
-use strum_macros::{EnumIter, IntoStaticStr};
-use std::hash::Hash;
+pub trait TextureType: Sized + Clone + Copy {
+	fn list() -> Vec<Self>;
 
+	fn name(&self) -> &'static str;
 
-#[derive(IntoStaticStr, EnumIter, Hash, PartialEq, Debug, Eq, Clone, Copy)]
-pub enum Texture {
-	Ant,
-	Swirl,
-	Flat,
-	Queen,
-}
-
-impl Texture {
-	pub fn frame_count(&self) -> u32 {
+	fn frame_count(&self) -> u32 {
 		1
 	}
 }

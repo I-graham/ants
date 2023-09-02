@@ -21,7 +21,9 @@ pub struct WinApi {
 }
 
 impl WinApi {
-	pub fn new(event_loop: &winit::event_loop::EventLoopWindowTarget<()>) -> Self {
+	pub fn new<Texture: TextureType>(
+		event_loop: &winit::event_loop::EventLoopWindowTarget<()>,
+	) -> Self {
 		let window = winit::window::WindowBuilder::new()
 			.with_min_inner_size(START_WIN_SIZE)
 			.build(event_loop)
@@ -31,7 +33,7 @@ impl WinApi {
 
 		let mut renderer = reng::Renderer::new(&window, 4);
 
-		let (image, texture_map) = loader::load_textures();
+		let (image, texture_map) = loader::load_textures::<Texture>();
 		let texture = renderer.create_texture_from_image(&image);
 		renderer.set_texture(&texture);
 

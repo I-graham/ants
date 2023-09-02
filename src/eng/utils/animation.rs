@@ -1,20 +1,20 @@
 use super::*;
-use crate::window::Texture;
+use crate::window::TextureType;
 use std::time::Instant;
 
 type Curve = fn(f32) -> f32;
 
 #[derive(Clone)]
-pub struct Animation {
+pub struct Animation<Texture: TextureType> {
 	pub start: Instant,
 	pub texture: Texture,
 	pub duration: f32,
 	pub curve: Curve,
-	pub repeat: Option<f32>, //None means repeat forever
+	pub repeat: f32, //Infinity means repeat forever
 }
 
 use std::f32::consts::*;
-impl Animation {
+impl<Texture: TextureType> Animation<Texture> {
 	pub const LINEAR: Curve = |f| f;
 	pub const FIRST: Curve = |_| 0.;
 	pub const LAST: Curve = |_| 1.;
@@ -24,12 +24,7 @@ impl Animation {
 	pub const REV_SIN_SQ: Curve = |f| Self::SIN(1.0 - f).powf(2.);
 	pub const SIN_BOUNCE: Curve = |f| Self::SIN(2. * f);
 
-	pub fn new(
-		texture: Texture,
-		duration: f32,
-		curve: fn(f32) -> f32,
-		repeat: Option<f32>,
-	) -> Self {
+	pub fn new(texture: Texture, duration: f32, curve: fn(f32) -> f32, repeat: f32) -> Self {
 		Self {
 			start: Instant::now(),
 			texture,
@@ -45,9 +40,10 @@ impl Animation {
 
 		let reps_elapsed = elapsed / self.duration;
 
-		let proportion = match self.repeat {
-			Some(reps) if elapsed > reps * self.duration => reps - f32::EPSILON,
-			_ => self.repeat.unwrap_or(reps_elapsed).min(reps_elapsed),
+		let proportion = if elapsed > self.repeat * self.duration {
+			self.repeat - f32::EPSILON
+		} else {
+			reps_elapsed
 		};
 
 		let frame = (frames as f32 * (self.curve)(proportion.fract())) as u32;
@@ -58,7 +54,7 @@ impl Animation {
 	}
 
 	pub fn finished(&self, now: Instant) -> bool {
-		matches!(self.repeat, Some(reps) if self.age(now) > reps * self.duration)
+		self.age(now) > self.repeat * self.duration
 	}
 
 	pub fn age(&self, now: Instant) -> f32 {

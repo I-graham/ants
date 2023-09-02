@@ -2,11 +2,13 @@ mod ants;
 mod food;
 mod interface;
 mod pheromones;
+mod texture;
 
 pub use ants::*;
 pub use food::*;
 pub use interface::*;
 pub use pheromones::*;
+pub use texture::*;
 
 use super::*;
 use crate::window::*;
@@ -23,8 +25,10 @@ pub struct World {
 	trails: Grid<Relaxed<Trail>>,
 }
 
-impl World {
-	pub fn new() -> Self {
+impl Root for World {
+	type Texture = Texture;
+
+	fn init() -> Self {
 		const NUM_FOOD: usize = 100;
 
 		Self {

@@ -1,21 +1,20 @@
-use super::messenger::Messenger;
-use crate::world::World;
-use super::GameObject;
+use super::*;
+
 use crate::window::WinApi;
 use winit::event::VirtualKeyCode;
 use winit::event_loop::EventLoop;
 
-pub struct GameState {
+pub struct GameState<World: Root> {
 	pub(super) api: WinApi,
 	messenger: Messenger,
 	world: World,
 }
 
-impl GameState {
+impl<World: Root> GameState<World> {
 	pub fn new(event_loop: &EventLoop<()>) -> Self {
-		let api = WinApi::new(event_loop);
+		let api = WinApi::new::<World::Texture>(event_loop);
 		Self {
-			world: World::new(),
+			world: World::init(),
 			messenger: Messenger::new(),
 			api,
 		}

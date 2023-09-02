@@ -13,7 +13,7 @@ use cgmath::*;
 use std::time::Instant;
 use winit::event::*;
 
-pub type TextureMap = fnv::FnvHashMap<Texture, Instance>;
+pub type TextureMap = fnv::FnvHashMap<&'static str, Instance>;
 
 pub struct External {
 	pub scroll: f32,
@@ -74,8 +74,8 @@ impl External {
 		}
 	}
 
-	pub fn instance(&self, texture: Texture) -> Instance {
-		self.texture_map[&texture]
+	pub fn instance<T: TextureType>(&self, texture: T) -> Instance {
+		self.texture_map[&texture.name()]
 	}
 
 	pub fn aspect(&self) -> f32 {
