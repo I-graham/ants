@@ -10,7 +10,7 @@ pub struct Animation<Texture: TextureType> {
 	pub texture: Texture,
 	pub duration: f32,
 	pub curve: Curve,
-	pub repeat: f32, //Infinity means repeat forever
+	pub repeat: f32, //Use f32::INFINITY to repeat forever
 }
 
 use std::f32::consts::*;
